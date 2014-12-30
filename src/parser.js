@@ -21,7 +21,7 @@ var Or = function () {
 var And = function () {
 	var parsers = arguments
 	return function (value) {
-		var val = "", offset = 0, type = ""
+		var val = "", offset = 0, type = "", children = []
 		
 		if (value.length === 0) return {status:false, type:"",value:"", offset:0}
 
@@ -42,7 +42,7 @@ var And = function () {
 var Optional = function () {
 	var parsers = arguments
 	return function (value) {
-    	var val = "", offset = 0, type = ""
+    var val = "", offset = 0, type = ""
 
 		for (var i = 0; i < parsers.length; i++) {
 			var parser = parsers[i]
