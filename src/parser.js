@@ -113,7 +113,6 @@ var number = And(Optional(sign), digits, Optional(And(dot, digits)))
 
 console.log(number("-89.23211"))
 
-
 //parser.add.Terminal.number = Add
 //parser.add.Nonterminal.exp = ...
 
