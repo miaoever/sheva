@@ -1,7 +1,3 @@
-var Token = function(status, type, value, offset) {
-	return {status:status, type:type, value:value, offset:offset}
-}
-
 var Or = function () {
 	var parsers = arguments
 	return function (value){
@@ -31,31 +27,33 @@ var And = function () {
 			
 			if (ok.status != true) return {status:false, type:"",value:"", offset:0}
 					
+			if (ok.offset != 0) children.push(ok)
 			val += ok.value
 			offset += ok.offset
 			type = ok.type
 		}
-		return {status:true, type:type, value:val, offset:offset}
+		return {status:true, type:type, value:val, offset:offset, children:children}
 	}
 }
 
-var Optional = function () {
-	var parsers = arguments
+var Optional = function (parser) {
+	//var parsers = arguments
 	return function (value) {
-    var val = "", offset = 0, type = ""
+//    var val = "", offset = 0, type = ""
 
-		for (var i = 0; i < parsers.length; i++) {
-			var parser = parsers[i]
-			var ok = parser(value.slice(offset))
-		
-			if (ok.status != true) continue
-					
-			val += ok.value
-			offset += ok.offset
-			type = ok.type
-		}
+//		for (var i = 0; i < parsers.length; i++) {
+//			var parser = parsers[i]
+//			var ok = parser(value.slice(offset))
+//		
+//			if (ok.status != true) continue
+//					
+//			val += ok.value
+//			offset += ok.offset
+//			type = ok.type
+//		}
 
-		return {status:true, type:type, value:val, offset:offset}
+		var ok = parser(value)
+		return {status:true, type:ok.type, value:ok.value, offset:ok.offset, children: ok.children || []}
 	}
 }
 
@@ -112,8 +110,10 @@ var plus = Is("+")
 var minus = Is("-")
 
 var number = And(Optional(sign), digits, Optional(And(dot, digits)))
-var exp = And()
 
-console.log(number("666.23211"))
+console.log(number("-89.23211"))
 
+
+//parser.add.Terminal.number = Add
+//parser.add.Nonterminal.exp = ...
 
