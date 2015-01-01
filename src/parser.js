@@ -1,4 +1,7 @@
-var Or = function () {
+var parser = function () {
+}
+
+parser.prototype.Or = function () {
 	var parsers = arguments
 	return function (value){
 		for (var i = 0; i < parsers.length; i++) {
@@ -14,7 +17,7 @@ var Or = function () {
 	}
 }
 
-var And = function () {
+parser.prototype.And = function () {
 	var parsers = arguments
 	return function (value) {
 		var val = "", offset = 0, type = "", children = []
@@ -36,7 +39,7 @@ var And = function () {
 	}
 }
 
-var Optional = function (parser) {
+parser.prototype.Optional = function (parser) {
 	//var parsers = arguments
 	return function (value) {
 //    var val = "", offset = 0, type = ""
@@ -57,7 +60,7 @@ var Optional = function (parser) {
 	}
 }
 
-var Is = function (expect) {
+parser.prototype.Is = function (expect) {
 	return function (value) {
 		return value.slice(0, expect.length) === expect
 		? {status:true, type:"literal", value:expect, offset:expect.length} 
@@ -66,7 +69,7 @@ var Is = function (expect) {
 }
 
 //MoreThan(times, parser)
-var MoreThan = function (times, parser) {
+parser.prototype.MoreThan = function (times, parser) {
 	return function (value) {
 		var val = "", offset = 0, type = ""
 		
@@ -92,7 +95,7 @@ var MoreThan = function (times, parser) {
 	}
 }
 
-var digit = function (str) {
+parser.prototype.Digit = function (str) {
 	if (str.charCodeAt(0) >='0'.charCodeAt(0) && str.charCodeAt(0) <= "9".charCodeAt(0)) {
 		return {status:true, type:"digit", value:str, offset:1}
 	} else {
@@ -100,19 +103,53 @@ var digit = function (str) {
 	}
 }
 
-var dot = Is(".")
-var digits = MoreThan(0, digit)
-var sign = Or(Is("-"), Is("+"))
+parser.prototype.addTerminal = function(terminals) {
+	var self = this
+	for (var item in terminals) { 
+		self.terminals[item] = terminals[item].call(self, self)
+		}
 
-var LBracket = Is("(")
-var RBracket = Is(")")
-var plus = Is("+")
-var minus = Is("-")
-
-var number = And(Optional(sign), digits, Optional(And(dot, digits)))
-
-console.log(number("-89.23211"))
+	}
+}
+//var dot = Is(".")
+//var digits = MoreThan(0, digit)
+//var sign = Or(Is("-"), Is("+"))
+//
+//var LBracket = Is("(")
+//var RBracket = Is(")")
+//var plus = Is("+")
+//var minus = Is("-")
+//
+//var number = And(Optional(sign), digits, Optional(And(dot, digits)))
+//
+//console.log(number("-89.23211"))
 
 //parser.add.Terminal.number = Add
 //parser.add.Nonterminal.exp = ...
 
+parser.addTerminal({
+	"NUMBER", function (rule) {
+		var digits = rule.MoreThan(0, rule.Digit)
+		var sign = rule.Or(rule.Is("-"), rule.Is("+"))
+		var dot = Is(".")
+
+		return rule.And(rule.Optional(sign), digits, rule.Optional(rule.And(dot, digits))
+	},
+	"DOT", function () {
+		return Is(".")
+	},
+	"LBRACKET", function () {
+		return Is("(")
+	},
+	"RBRACKET", function () {
+		return Is(")")
+	},
+	"PLUS", function () {
+		return Is("+")
+	},
+	"MINUS", function () {
+		return Is("-")
+	}
+})
+
+parser.terminals.Number()
