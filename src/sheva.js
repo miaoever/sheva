@@ -23,7 +23,6 @@ sheva.prototype.Or = function () {
 sheva.prototype.And = function () {
 	//var parsers = arguments
 	var parsers = Array.prototype.slice.call(arguments, 0, arguments.length);
-	console.log(parsers);
 	var self = this
 	return function (value, type) {
 		var val = "", offset = 0, children = []
