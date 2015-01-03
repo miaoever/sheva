@@ -23,7 +23,8 @@ sheva.prototype.Or = function () {
 sheva.prototype.And = function () {
 	//var parsers = arguments
 	var parsers = Array.prototype.slice.call(arguments, 0, arguments.length);
-	
+	console.log(parsers);
+	var self = this
 	return function (value, type) {
 		var val = "", offset = 0, children = []
 		
@@ -35,7 +36,7 @@ sheva.prototype.And = function () {
 			
 			if (ok.status != true) return {status:false, type:"",value:"", offset:0}
 					
-			if (ok.offset != 0 && !IsToken(type)) children.push(ok)
+			if (ok.offset != 0 && !(type in this.tokens)) children.push(ok)
 			val += ok.value
 			offset += ok.offset
 		}
@@ -65,8 +66,10 @@ sheva.prototype.Optional = function (parser) {
 }
 
 sheva.prototype.Is = function (expect) {
+	var self = this
 	return function (value, type) {
-		if (IsToken(type)) {
+		//console.log(arguments);
+		if (type in this.tokens) {
 			return value.slice(0, expect.length) === expect
 				? {status:true, type:type, value:expect, offset:expect.length} 
 				: {status:false, type:"",value:"", offset:0}
@@ -117,15 +120,13 @@ sheva.prototype.token = function(tokens) {
 	for (var item in tokens) { 
 		if (typeof tokens[item] === "function") {
 			var action = (function(type){
-				return function () {
-					var argvs =  Array.prototype.slice.call(arguments)
-					//append the token type to the parser
-					argvs.push(type)
-					tokens[type].apply(self, argvs)
-				}
+				var argvs =  Array.prototype.slice.call(arguments)
+				//append the token type to the parser
+				//argvs.push(type)
+				//console.log(argvs);
+				return tokens[type].apply(self, argvs)
 			})(item)
-			self[item] = action
-			self.tokens[item] = action
+			self[item] = self.tokens[item] = action
 		}
 	}
 }
@@ -141,11 +142,26 @@ sheva.prototype.grammar = function() {
 }
 
 sheva.prototype.lex = function(str) {
-	var val = "", offset = 0
+	var val = "", offset = 0, res = [], success = false
 	
-	for (lexer in this.tokens) {
-		var token = lexers(str.slice(offset))
+	while (offset < str.length) {
+		success = false
+		for (item in this.tokens) {
+			//console.log(item);
+			var lexer = this.tokens[item]
+			var token = lexer(str.slice(offset))
+			if (token.status) {
+				res.push(token)
+				success = true
+				offset += token.offset
+				break
+			}
+		}
+		if (!success) {
+			return new Error("Error when parse " + str.substr(offset))
+		}
 	}
+	return res
 }
 
 sheva.prototype.parse = function(str) {

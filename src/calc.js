@@ -1,15 +1,15 @@
 var parser = require("sheva")()
 
 function calc() {
-	var Add = parser.Add
+	var And = parser.And
 	var Or = parser.Or
 	var MoreThan = parser.MoreThan
 	var Optional = parser.Optional
 	var Is = parser.Is
-	var Digit = Parser.Digit
+	var Digit = parser.Digit
 	
 	parser.token({
-		"NUMBER": function (rule) {	
+		"NUMBER": function () {	
 			var digits = MoreThan(0, Digit)
 			var sign = Or(Is("-"), Is("+"))
 			var dot = Is(".")
@@ -24,9 +24,10 @@ function calc() {
 		"DIV": Is("/")
 	})
 	
-	parser.parse("6.823");
+	parser.lex("6.823");
 }
 
+calc()
 
 
 //var dot = Is(".")
