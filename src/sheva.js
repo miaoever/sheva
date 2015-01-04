@@ -4,6 +4,7 @@ var sheva = function () {
 
 sheva.prototype.Or = function () {
 	//var parsers = arguments
+	var self = this
 	var parsers = Array.prototype.slice.call(arguments, 0, arguments.length);
 
 	return function (value, type){
@@ -12,7 +13,6 @@ sheva.prototype.Or = function () {
 			
 			//parser should be a function
 			if (typeof parser != "function") break
-
 			var ok = parser(value, type)
 			if (ok.status === true) return ok
 		}
@@ -24,6 +24,7 @@ sheva.prototype.And = function () {
 	//var parsers = arguments
 	var parsers = Array.prototype.slice.call(arguments, 0, arguments.length);
 	var self = this
+
 	return function (value, type) {
 		var val = "", offset = 0, children = []
 		
@@ -35,7 +36,7 @@ sheva.prototype.And = function () {
 			
 			if (ok.status != true) return {status:false, type:"",value:"", offset:0}
 					
-			if (ok.offset != 0 && !(type in this.tokens)) children.push(ok)
+			if (ok.offset != 0 && !(type in self.tokens)) children.push(ok)
 			val += ok.value
 			offset += ok.offset
 		}
@@ -45,6 +46,8 @@ sheva.prototype.And = function () {
 
 sheva.prototype.Optional = function (parser) {
 	//var parsers = arguments
+	var self = this
+
 	return function (value, type) {
 //    var val = "", offset = 0, type = ""
 
@@ -66,9 +69,10 @@ sheva.prototype.Optional = function (parser) {
 
 sheva.prototype.Is = function (expect) {
 	var self = this
+	//console.log(self);
 	return function (value, type) {
-		//console.log(arguments);
-		if (type in this.tokens) {
+		//console.log();
+		if (type in self.tokens) {
 			return value.slice(0, expect.length) === expect
 				? {status:true, type:type, value:expect, offset:expect.length} 
 				: {status:false, type:"",value:"", offset:0}
@@ -82,13 +86,14 @@ sheva.prototype.Is = function (expect) {
 
 //MoreThan(times, parser)
 sheva.prototype.MoreThan = function (times, parser) {
+	var self = this
 	return function (value, type) {
 		var val = "", offset = 0
 		
 		if (value.length === 0) return {status:false, type:"",value:"", offset:0}
 		
 		for (var i = 0; i < value.length; i++) {
-			var ok = parser(value[i], type)
+			var ok = parser.call(self, value[i], type)
 			
 			if (ok.status != true) {
 				if (i <= times) {
@@ -116,14 +121,19 @@ sheva.prototype.Digit = function (str) {
 
 sheva.prototype.token = function(tokens) {
 	var self = this
+	//console.log(self);
+
 	for (var item in tokens) { 
 		if (typeof tokens[item] === "function") {
 			var action = (function(type){
-				var argvs =  Array.prototype.slice.call(arguments)
-				//append the token type to the parser
-				//argvs.push(type)
-				//console.log(argvs);
-				return tokens[type].apply(self, argvs)
+				var fn = (tokens[type]).bind(self)
+				
+				return function() {
+					var argvs =  Array.prototype.slice.call(arguments)
+					//append the token type to the parser
+					argvs.push(type)
+					return fn.apply(self, argvs)
+				}
 			})(item)
 			self[item] = self.tokens[item] = action
 		}
@@ -134,10 +144,13 @@ sheva.prototype.IsToken = function (token) {
 	return (token in this.tokens)
 }
 
-sheva.prototype.$ = function () {
+sheva.prototype.$ = function (type) {
+	//console.log(this.tokens);
+	return this.tokens[type].call(this) || function(){}
 }
 
-sheva.prototype.grammar = function() {
+sheva.prototype.grammar = function(tokens) {
+	
 }
 
 sheva.prototype.lex = function(str) {
