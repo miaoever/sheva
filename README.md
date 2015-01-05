@@ -1,4 +1,4 @@
 Sheva
 =====
 
-A tiny parser combinator in JS.
+Parser combinator in JS.

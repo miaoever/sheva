@@ -1,7 +1,6 @@
 var parser = require("sheva")()
 
-function calc() {
-	
+var calc = function () {
 	var And = parser.And.bind(parser)
 	var Or = parser.Or.bind(parser)
 	var MoreThan = parser.MoreThan.bind(parser)
@@ -11,18 +10,13 @@ function calc() {
 	var $ = parser.$.bind(parser)
 	
 	parser.token({
-		"DOT": Is("."),
-		"LBRACKET": Is("("),
-		"RBRACKET": Is(")"),
+		"LB": Is("("),
+		"RB": Is(")"),
 		"PLUS": Is("+"),
 		"MINUS": Is("-"),
 		"MUL": Is("*"),
 		"DIV": Is("/"),
-		"DOT": Is("."),
-		"SIGN": Or(Is("-"), Is("+")),
-		"DIGITS": MoreThan(0, Digit),
-		//"NUMBER": And(Optional($('SIGN')), $('DIGITS'), Optional(And($('DOT'), $('DIGITS'))))
-		"NUMBER": (function () {	
+		"NUM": (function () {	
 			var digits = MoreThan(0, Digit)
 			var sign = Or(Is("-"), Is("+"))
 			var dot = Is(".")
@@ -30,7 +24,14 @@ function calc() {
 		})(),
 	})
 	
-	console.log(parser.lex("-6.8934"));
+	parser.grammar({
+		"Expr": And($("Term"), Optional($("TermOp"))),
+		"Term": And($("Factor"), Optional($("FactorOp"))),		"TermOp": Or(Is("PLUS"), Is("MINUS")),
+		"Factor": Or(And(Is("LB"), $("Expr"), Is("RB")), Is("NUM")),
+		"FactorOp": Or(Is("MUL"), Is("DIV"))
+		"FACTOR": Is("NUM")
+	})
+	console.log(parser.ast(parser.lex("6.234")));
 }
 
 calc()
