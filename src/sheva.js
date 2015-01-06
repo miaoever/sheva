@@ -4,7 +4,6 @@ var sheva = function () {
 }
 
 sheva.prototype.Or = function () {
-	//var parsers = arguments
 	var self = this
 	var parsers = Array.prototype.slice.call(arguments, 0, arguments.length);
 	return function (value, type){
@@ -16,25 +15,24 @@ sheva.prototype.Or = function () {
 			var ok = parser(value, type)
 			if (ok.status === true) return ok
 		}
-		return {status:false, type:"",value:"", offset:0}
+		return {status:false}
 	}
 }
 
 sheva.prototype.And = function () {
-	//var parsers = arguments
 	var parsers = Array.prototype.slice.call(arguments, 0, arguments.length);
 	var self = this
 
 	return function (value, type) {
 		var val = "", offset = 0, children = []
 	
-    	if (value.length === 0) return {status:false, type:"",value:"", offset:0}
+    	if (value.length === 0) return {status:false}
 
 		for (var i = 0; i < parsers.length; i++) {
 			var parser = parsers[i]
 			var ok = parser(value.slice(offset), type)
 			
-			if (ok.status != true) return {status:false, type:"",value:"", offset:0}
+			if (ok.status != true) return {status:false}
 
 			if (ok.offset != 0 && !(type in self.tokens)) children.push(ok)
 
@@ -51,22 +49,9 @@ sheva.prototype.And = function () {
 }
 
 sheva.prototype.Optional = function (parser) {
-	//var parsers = arguments
 	var self = this
 
 	return function (value, type) {
-//    var val = "", offset = 0, type = ""
-
-//		for (var i = 0; i < parsers.length; i++) {
-//			var parser = parsers[i]
-//			var ok = parser(value.slice(offset))
-//		
-//			if (ok.status != true) continue
-//					
-//			val += ok.value
-//			offset += ok.offset
-//			type = ok.type
-//		}
         var ok = {}, res = {}
         if (value.length != 0) {
 		    ok = parser(value, type)
@@ -81,19 +66,15 @@ sheva.prototype.Optional = function (parser) {
 
 sheva.prototype.Is = function (expect) {
 	var self = this
-	//console.log(self);
 	return function (value, type) {
-		//console.log("###", value, expect, type);
 		if (type in self.tokens) {
 			return value.slice(0, expect.length) === expect
 				? {status:true, type:type, value:expect, offset:expect.length} 
-				: {status:false, type:"",value:"", offset:0}
+				: {status:false}
 		} else {
-			//console.log("###", value, expect, type);
-
 			return value[0].type === expect
-				? {status:true, type:type, value:value[0].value, offset:1} 
-				: {status:false, type:"",value:"", offset:0}
+				? {status:true, type:expect, value:value[0].value, offset:1} 
+				: {status:false}
 		}
 	}
 }
@@ -102,20 +83,21 @@ sheva.prototype.Is = function (expect) {
 sheva.prototype.MoreThan = function (times, parser) {
 	var self = this
 	return function (value, type) {
-		var val = "", offset = 0
+		var val = "", offset = 0, pass = 0, prev = {}
 		
 		if (value.length === 0) return {status:false, type:"",value:"", offset:0}
 		
-		for (var i = 0; i < value.length; i++) {
-			var ok = parser.call(self, value[i], type)
-			
+         while (offset < value.length) {
+            var ok = parser(value.slice(offset), type)
+            
 			if (ok.status != true) {
-				if (i <= times) {
-					return {status:false, type:"",value:"", offset:0}
+				if (pass <= times) {
+					return {status:false}
 				} else {
 					break
 				}
 			} else {
+               pass ++;
 				val += ok.value
 				offset += ok.offset
 			}
@@ -126,10 +108,10 @@ sheva.prototype.MoreThan = function (times, parser) {
 }
 
 sheva.prototype.Digit = function (str) {
-	if (str.charCodeAt(0) >='0'.charCodeAt(0) && str.charCodeAt(0) <= "9".charCodeAt(0)) {
-		return {status:true, type:"DIGIT", value:str, offset:1}
+	if (str[0].charCodeAt(0) >='0'.charCodeAt(0) && str[0].charCodeAt(0) <= "9".charCodeAt(0)) {
+		return {status:true, type:"DIGIT", value:str[0], offset:1}
 	} else {
-		return {status:false, type:"",value:"", offset:0}
+		return {status:false}
 	}
 }
 
@@ -163,7 +145,8 @@ sheva.prototype.$ = function (type) {
 		var fn = self.tokens[type] || self.grammars[type]
 		
 		if (typeof fn != "function") return new Error("Unknow item: " + type)
-		
+        //replace the item type
+		arguments[arguments.length - 1] = type
 		return fn.apply(self, arguments)
 	}
 }
@@ -211,31 +194,16 @@ sheva.prototype.lex = function(str) {
 	return res
 }
 
-sheva.prototype.ast = function (tokens) {
-	var val = "", offset = 0, res = [], success = false
-
-	while (offset < tokens.length) {
-		for (var rule in this.grammars) {
-			//console.log(rule);
-			var parser = this.grammars[rule]
-			var ok = parser(tokens.slice(offset))
-            //console.log("@@@@", ok);
-
-			if (ok.status) {
-				//console.log("@@@",ok);
-				res.push(ok)
-				success = true
-				offset += ok.offset
-				break
-			}
-		}
-		if (!success) {
-			return new Error("Error when parse.")
-		}
-	}
+sheva.prototype.ast = function (root, tokens) {
+	var parser = this.grammars[root]
+    var ok = parser(tokens)
+    
+    if (!ok.status) return new Error("Error when parse " + tokens[0].value)
+    if (ok.offset < tokens.length) return new Error("Error when parse " + tokens.slice(ok.offset)[0].value)
 		
-	return res
+	return ok
 } 
+
 sheva.prototype.parse = function(str) {
 	var tokens = this.lex(str)
 	var ast = this.ast(tokens)
