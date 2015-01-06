@@ -7,7 +7,6 @@ sheva.prototype.Or = function () {
 	//var parsers = arguments
 	var self = this
 	var parsers = Array.prototype.slice.call(arguments, 0, arguments.length);
-
 	return function (value, type){
 		for (var i = 0; i < parsers.length; i++) {
 			var parser = parsers[i]
@@ -28,21 +27,25 @@ sheva.prototype.And = function () {
 
 	return function (value, type) {
 		var val = "", offset = 0, children = []
-		
-		if (value.length === 0) return {status:false, type:"",value:"", offset:0}
+	
+    	if (value.length === 0) return {status:false, type:"",value:"", offset:0}
 
 		for (var i = 0; i < parsers.length; i++) {
 			var parser = parsers[i]
 			var ok = parser(value.slice(offset), type)
 			
 			if (ok.status != true) return {status:false, type:"",value:"", offset:0}
-					
+
 			if (ok.offset != 0 && !(type in self.tokens)) children.push(ok)
+
 			val += ok.value
 			offset += ok.offset
 		}
+
 		var res = {status:true, type:type, value:val, offset:offset}
+
 		if (!(type in self.tokens)) res.children = children
+
 		return res
 	}
 }
@@ -64,9 +67,13 @@ sheva.prototype.Optional = function (parser) {
 //			offset += ok.offset
 //			type = ok.type
 //		}
-
-		var ok = parser(value, type)
-		var res = {status:true, type:ok.type || "", value:ok.value || "", offset:ok.offset || 0}
+        var ok = {}, res = {}
+        if (value.length != 0) {
+		    ok = parser(value, type)
+        } 		
+            
+        res = {status:true, type:ok.type || "", value:ok.value || "", offset:ok.offset || 0}
+        
 		if (!(type in self.tokens)) res.children = ok.children
 		return res
 	}
@@ -82,7 +89,7 @@ sheva.prototype.Is = function (expect) {
 				? {status:true, type:type, value:expect, offset:expect.length} 
 				: {status:false, type:"",value:"", offset:0}
 		} else {
-			console.log("###", value, expect, type);
+			//console.log("###", value, expect, type);
 
 			return value[0].type === expect
 				? {status:true, type:type, value:value[0].value, offset:1} 
@@ -155,7 +162,7 @@ sheva.prototype.$ = function (type) {
 	return function () {
 		var fn = self.tokens[type] || self.grammars[type]
 		
-		if (typeof fn != "function") return new Error("Unknow token: " + type)
+		if (typeof fn != "function") return new Error("Unknow item: " + type)
 		
 		return fn.apply(self, arguments)
 	}
@@ -212,8 +219,10 @@ sheva.prototype.ast = function (tokens) {
 			//console.log(rule);
 			var parser = this.grammars[rule]
 			var ok = parser(tokens.slice(offset))
+            //console.log("@@@@", ok);
+
 			if (ok.status) {
-				console.log(ok);
+				//console.log("@@@",ok);
 				res.push(ok)
 				success = true
 				offset += ok.offset

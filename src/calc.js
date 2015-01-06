@@ -26,12 +26,15 @@ var calc = function () {
 	
 	parser.grammar({
 		"Expr": And($("Term"), Optional($("TermOp"))),
-		"Term": And($("Factor"), Optional($("FactorOp"))),		"TermOp": Or(Is("PLUS"), Is("MINUS")),
+		"Term": And($("Factor"), Optional($("FactorOp"))),
+		"TermOp": Or(Is("PLUS"), Is("MINUS")),
 		"Factor": Or(And(Is("LB"), $("Expr"), Is("RB")), Is("NUM")),
-		"FactorOp": Or(Is("MUL"), Is("DIV"))
-		"FACTOR": Is("NUM")
+		"FactorOp": Or(Is("MUL"), Is("DIV")),
+
 	})
-	console.log(parser.ast(parser.lex("6.234")));
+
+    //console.log(parser.ast(parser.lex("888+99-123")))
+	console.log(parser.ast(parser.lex("123+1")));
 }
 
 calc()
