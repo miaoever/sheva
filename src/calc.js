@@ -21,20 +21,55 @@ var calc = function () {
 			var sign = Or(Is("-"), Is("+"))
 			var dot = Is(".")
 			return And(Optional(sign), digits, Optional(And(dot, digits)))
-		})(),
+		})()
 	})
-	
+
 	parser.grammar({
-		"Expr": And($("Term"), Optional($("TermOp"))),
-		"Term": And($("Factor"), Optional($("FactorOp"))),
+        "Expr": And($("Term"), Optional(MoreThan(0, $("MoreExpr")))),
+        "MoreExpr": And($("TermOp"), $("Term")),
+		"Term": And($("Factor"), Optional(MoreThan(0, $("MoreTerm")))),
+        "MoreTerm": And($("FactorOp"), $("Factor")),
 		"TermOp": Or(Is("PLUS"), Is("MINUS")),
-		"Factor": Or(And(Is("LB"), $("Expr"), Is("RB")), Is("NUM")),
-		"FactorOp": Or(Is("MUL"), Is("DIV")),
-
+		"Factor": Or($("P-Expr"), Is("NUM")),
+        "P-Expr": And(Is("LB"), $("Expr"), Is("RB")),
+		"FactorOp": Or(Is("MUL"), Is("DIV"))
 	})
 
-    //console.log(parser.ast(parser.lex("888+99-123")))
-	console.log(parser.ast(parser.lex("123+1")));
+    parser.action({
+        "NUM": function(n) { n.extra = parseFloat(n.value) },
+        "Factor": function(n) { n.extra = n.children[0].extra },
+        "MoreTerm": function (n) { n.extra = n.children[1].extra },
+        "MoreExpr": function (n) { n.extra = n.children[1].extra },
+        "P-Expr": function(n) { n.extra = n.children[1].extra },
+        "Term": function(n) {
+            n.extra = n.children[0].extra
+            for (var i = 1; i < n.children.length; i ++) {
+                var FactorOp = n.children[i].children[0]
+                var Factor = n.children[i].children[1]
+                
+                switch (FactorOp.value) {
+                   case "*": n.extra *= Factor.extra;break;
+                   case "/": n.extra /= Factor.extra;break;
+                }
+            }
+        },
+        "Expr": function(n) {
+            n.extra = n.children[0].extra
+            for (var i = 1; i < n.children.length; i ++) {
+                var TermOp = n.children[i].children[0]
+                var Term = n.children[i].children[1]
+                
+                switch (TermOp.value) {
+                  case "+": n.extra += Term.extra;break;
+                  case "-": n.extra -= Term.extra;break;
+                }
+            }
+        },
+    })
+    
+    var ast = parser.ast("Expr", parser.lex("250*(1+1)"))
+    ast = parser.eval(ast)
+    console.log(ast)
 }
 
 calc()
