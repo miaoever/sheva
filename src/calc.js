@@ -43,9 +43,10 @@ var calc = function () {
         "P-Expr": function(n) { n.extra = n.children[1].extra },
         "Term": function(n) {
             n.extra = n.children[0].extra
-            for (var i = 1; i < n.children.length; i ++) {
-                var FactorOp = n.children[i].children[0]
-                var Factor = n.children[i].children[1]
+            var child = n.children[1]
+            for (var i = 0; child && i < child.children.length; i+=2) {
+                var FactorOp = child.children[i]
+                var Factor = child.children[i+1]
                 
                 switch (FactorOp.value) {
                    case "*": n.extra *= Factor.extra;break;
@@ -55,10 +56,10 @@ var calc = function () {
         },
         "Expr": function(n) {
             n.extra = n.children[0].extra
-            for (var i = 1; i < n.children.length; i ++) {
-                var TermOp = n.children[i].children[0]
-                var Term = n.children[i].children[1]
-                
+            var child = n.children[1]
+            for (var i = 0; child && i < child.children.length; i+=2) {
+                var TermOp = child.children[i]
+                var Term = child.children[i+1]
                 switch (TermOp.value) {
                   case "+": n.extra += Term.extra;break;
                   case "-": n.extra -= Term.extra;break;
@@ -67,7 +68,7 @@ var calc = function () {
         },
     })
     
-    var ast = parser.ast("Expr", parser.lex("250*(1+1)"))
+    var ast = parser.ast("Expr", parser.lex("(1+2)*(3+4+5)"))
     ast = parser.eval(ast)
     console.log(ast)
 }
