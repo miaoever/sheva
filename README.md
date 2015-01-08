@@ -14,7 +14,7 @@ npm install sheva
 * Calculator
 
 ```javascript
-var parser = require("sheva")()
+var parser = require("sheva")();
 
 (function () {
 	var And = parser.And.bind(parser)
@@ -51,40 +51,40 @@ var parser = require("sheva")()
 		"FactorOp": Or(Is("MUL"), Is("DIV"))
 	})
 
-    parser.action({
-        "NUM": function(n) { n.extra = parseFloat(n.value) },
-        "Factor": function(n) { n.extra = n.children[0].extra },
-        "MoreTerm": function (n) { n.extra = n.children[1].extra },
-        "MoreExpr": function (n) { n.extra = n.children[1].extra },
-        "P-Expr": function(n) { n.extra = n.children[1].extra },
-        "Term": function(n) {
-            n.extra = n.children[0].extra
-            var child = n.children[1]
-            for (var i = 0; child && i < child.children.length; i+=2) {
-                var FactorOp = child.children[i]
-                var Factor = child.children[i+1]
-                
-                switch (FactorOp.value) {
-                   case "*": n.extra *= Factor.extra;break;
-                   case "/": n.extra /= Factor.extra;break;
-                }
+  parser.action({
+      "NUM": function(n) { n.extra = parseFloat(n.value) },
+      "Factor": function(n) { n.extra = n.children[0].extra },
+      "MoreTerm": function (n) { n.extra = n.children[1].extra },
+      "MoreExpr": function (n) { n.extra = n.children[1].extra },
+      "P-Expr": function(n) { n.extra = n.children[1].extra },
+      "Term": function(n) {
+      n.extra = n.children[0].extra
+      var child = n.children[1]
+      for (var i = 0; child && i < child.children.length; i+=2) {
+      var FactorOp = child.children[i]
+      var Factor = child.children[i+1]
+
+      switch (FactorOp.value) {
+      case "*": n.extra *= Factor.extra;break;
+      case "/": n.extra /= Factor.extra;break;
+      }
+      }
+      },
+      "Expr": function(n) {
+      n.extra = n.children[0].extra
+        var child = n.children[1]
+        for (var i = 0; child && i < child.children.length; i+=2) {
+          var TermOp = child.children[i]
+            var Term = child.children[i+1]
+            switch (TermOp.value) {
+              case "+": n.extra += Term.extra;break;
+              case "-": n.extra -= Term.extra;break;
             }
-        },
-        "Expr": function(n) {
-            n.extra = n.children[0].extra
-            var child = n.children[1]
-            for (var i = 0; child && i < child.children.length; i+=2) {
-                var TermOp = child.children[i]
-                var Term = child.children[i+1]
-                switch (TermOp.value) {
-                  case "+": n.extra += Term.extra;break;
-                  case "-": n.extra -= Term.extra;break;
-                }
-            }
-        },
-    })
+        }
+      },
+  })
    
-    console.log(parser.parse("7+234*(3+1)"))
+  console.log(parser.parse("7+234*(3+1)"))
 })()
 
 ```

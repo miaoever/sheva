@@ -1,6 +1,6 @@
 {
   "name": "sheva",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Sheva is a Parser combinator library in javascript.",
   "main": "index.js",
   "directories": {
