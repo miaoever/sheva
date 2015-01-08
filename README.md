@@ -3,6 +3,12 @@ Sheva
 
 Sheva is a Parser combinator library in JS.
 
+### Installation ###
+
+```javascript
+npm install sheva
+```
+
 ### Example ###
 
 * Calculator
@@ -83,7 +89,7 @@ var parser = require("sheva")()
 
 ```
 ### Author ###
-@miaoever
+miaoever
 ### License ###
 
 MIT
