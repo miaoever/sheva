@@ -9,31 +9,31 @@ var parser = require("sheva")();
 	var Digit = parser.Digit.bind(parser)
 	var $ = parser.$.bind(parser)
 	
-	parser.token({
-		"LB": Is("("),
-		"RB": Is(")"),
-		"PLUS": Is("+"),
-		"MINUS": Is("-"),
-		"MUL": Is("*"),
-		"DIV": Is("/"),
-		"NUM": (function () {	
-			var digits = MoreThan(0, Digit)
-			var sign = Or(Is("-"), Is("+"))
-			var dot = Is(".")
-			return And(Optional(sign), digits, Optional(And(dot, digits)))
-		})()
-	})
+  parser.token({
+    "LB": Is("("),
+    "RB": Is(")"),
+    "PLUS": Is("+"),
+    "MINUS": Is("-"),
+    "MUL": Is("*"),
+    "DIV": Is("/"),
+    "NUM": (function () {	
+      var digits = MoreThan(0, Digit)
+      var sign = Or(Is("-"), Is("+"))
+      var dot = Is(".")
+      return And(Optional(sign), digits, Optional(And(dot, digits)))
+    })()
+  })
 
-	parser.grammar({
-        "Expr": And($("Term"), Optional(MoreThan(0, $("MoreExpr")))),
-        "MoreExpr": And($("TermOp"), $("Term")),
-		"Term": And($("Factor"), Optional(MoreThan(0, $("MoreTerm")))),
-        "MoreTerm": And($("FactorOp"), $("Factor")),
-		"TermOp": Or(Is("PLUS"), Is("MINUS")),
-		"Factor": Or($("P-Expr"), Is("NUM")),
-        "P-Expr": And(Is("LB"), $("Expr"), Is("RB")),
-		"FactorOp": Or(Is("MUL"), Is("DIV"))
-	})
+  parser.grammar({
+    "Expr": And($("Term"), Optional(MoreThan(0, $("MoreExpr")))),
+    "MoreExpr": And($("TermOp"), $("Term")),
+    "Term": And($("Factor"), Optional(MoreThan(0, $("MoreTerm")))),
+    "MoreTerm": And($("FactorOp"), $("Factor")),
+    "TermOp": Or(Is("PLUS"), Is("MINUS")),
+    "Factor": Or($("P-Expr"), Is("NUM")),
+    "P-Expr": And(Is("LB"), $("Expr"), Is("RB")),
+    "FactorOp": Or(Is("MUL"), Is("DIV"))
+  })
 
   parser.action({
     "NUM": function(n) { n.extra = parseFloat(n.value) },
@@ -60,6 +60,7 @@ var parser = require("sheva")();
       for (var i = 0; child && i < child.children.length; i+=2) {
         var TermOp = child.children[i]
         var Term = child.children[i+1]
+
         switch (TermOp.value) {
           case "+": n.extra += Term.extra;break;
           case "-": n.extra -= Term.extra;break;
