@@ -1,22 +1,22 @@
 var parser = require("sheva")();
 
 (function(){
-	var And = parser.And.bind(parser)
-	var Or = parser.Or.bind(parser)
+	var And      = parser.And.bind(parser)
+	var Or       = parser.Or.bind(parser)
 	var MoreThan = parser.MoreThan.bind(parser)
 	var Optional = parser.Optional.bind(parser)
-	var Is = parser.Is.bind(parser)
-	var Digit = parser.Digit.bind(parser)
-	var $ = parser.$.bind(parser)
+	var Is       = parser.Is.bind(parser)
+	var Digit    = parser.Digit.bind(parser)
+	var $        = parser.$.bind(parser)
 	
   parser.token({
-    "LB": Is("("),
-    "RB": Is(")"),
-    "PLUS": Is("+"),
-    "MINUS": Is("-"),
-    "MUL": Is("*"),
-    "DIV": Is("/"),
-    "NUM": (function () {	
+    "LB"    : Is("("),
+    "RB"    : Is(")"),
+    "PLUS"  : Is("+"),
+    "MINUS" : Is("-"),
+    "MUL"   : Is("*"),
+    "DIV"   : Is("/"),
+    "NUM"   : (function () {
       var digits = MoreThan(0, Digit)
       var sign = Or(Is("-"), Is("+"))
       var dot = Is(".")
@@ -25,23 +25,23 @@ var parser = require("sheva")();
   })
 
   parser.grammar({
-    "Expr": And($("Term"), Optional(MoreThan(0, $("MoreExpr")))),
-    "MoreExpr": And($("TermOp"), $("Term")),
-    "Term": And($("Factor"), Optional(MoreThan(0, $("MoreTerm")))),
-    "MoreTerm": And($("FactorOp"), $("Factor")),
-    "TermOp": Or(Is("PLUS"), Is("MINUS")),
-    "Factor": Or($("P-Expr"), Is("NUM")),
-    "P-Expr": And(Is("LB"), $("Expr"), Is("RB")),
-    "FactorOp": Or(Is("MUL"), Is("DIV"))
+    "Expr"     : And($("Term"), Optional(MoreThan(0, $("MoreExpr")))),
+    "MoreExpr" : And($("TermOp"), $("Term")),
+    "Term"     : And($("Factor"), Optional(MoreThan(0, $("MoreTerm")))),
+    "MoreTerm" : And($("FactorOp"), $("Factor")),
+    "TermOp"   : Or(Is("PLUS"), Is("MINUS")),
+    "Factor"   : Or($("P-Expr"), Is("NUM")),
+    "P-Expr"   : And(Is("LB"), $("Expr"), Is("RB")),
+    "FactorOp" : Or(Is("MUL"), Is("DIV"))
   })
 
   parser.action({
-    "NUM": function(n) { n.extra = parseFloat(n.value) },
-    "Factor": function(n) { n.extra = n.children[0].extra },
-    "MoreTerm": function (n) { n.extra = n.children[1].extra },
-    "MoreExpr": function (n) { n.extra = n.children[1].extra },
-    "P-Expr": function(n) { n.extra = n.children[1].extra },
-    "Term": function(n) {
+    "NUM"      : function (n) { n.extra = parseFloat(n.value) },
+    "Factor"   : function (n) { n.extra = n.children[0].extra },
+    "MoreTerm" : function (n) { n.extra = n.children[1].extra },
+    "MoreExpr" : function (n) { n.extra = n.children[1].extra },
+    "P-Expr"   : function (n) { n.extra = n.children[1].extra },
+    "Term"     : function (n) {
       n.extra = n.children[0].extra
       var child = n.children[1]
       for (var i = 0; child && i < child.children.length; i+=2) {
@@ -54,7 +54,7 @@ var parser = require("sheva")();
         }
       }
     },
-    "Expr": function(n) {
+    "Expr"    : function (n) {
       n.extra = n.children[0].extra
       var child = n.children[1]
       for (var i = 0; child && i < child.children.length; i+=2) {
