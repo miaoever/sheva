@@ -51,6 +51,17 @@ sheva.prototype.And = function () {
 	}
 }
 
+sheva.prototype.Not = function (parser) {
+  return function (value, type) {
+    if (value.length === 0) return {status:false}
+    var ok = parser(value, type)
+
+    if (!ok) return {status:true, type:type, value:value.value || value,offset:0}
+    
+    return {status:false}
+  }
+}
+
 sheva.prototype.Optional = function (parser) {
 	var self = this
 
@@ -112,7 +123,6 @@ sheva.prototype.MoreThan = function (times, parser) {
            children.push(ok.children[i])
         }
       }
-
     }
 
     var res = {status:true, type:resType, value:val, offset:offset}
