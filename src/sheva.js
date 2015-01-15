@@ -24,7 +24,7 @@ sheva.prototype.Or = function () {
         res = ok;
       }
     }
-    return res
+    return res;
   }
 }
 
