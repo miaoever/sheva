@@ -56,6 +56,13 @@ sheva.prototype.And = function () {
 		return res;
 	}
 }
+//Until(Parser, EndConditionParser) - repeat the Parser until the EndConditionParser matched.
+sheva.prototype.Until = function () {
+  var parser = arguments[0];
+  var EndContidtionParser = arguments[1];
+  return function (value, type) {
+  }
+}
 
 sheva.prototype.Not = function (parser) {
   return function (value, type) {
