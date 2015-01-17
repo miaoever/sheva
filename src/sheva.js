@@ -61,6 +61,27 @@ sheva.prototype.Until = function () {
   var parser = arguments[0];
   var EndContidtionParser = arguments[1];
   return function (value, type) {
+		var val = "", offset = 0, children = [];
+    
+    if (value.length === 0) return {status:false};
+
+		for (var i = 0; i < parsers.length; i++) {
+			var parser = parsers[i];
+			var ok = parser(value.slice(offset), type);
+
+			if (ok.status != true) return {status:false};
+
+			if (ok.offset != 0 && !(type in self.tokens)) children.push(ok);
+
+			val += ok.value;
+			offset += ok.offset;
+		}
+
+		var res = {status:true, type:type, value:val, offset:offset};
+
+		if (!(type in self.tokens)) res.children = children;
+
+		return res;
   }
 }
 
