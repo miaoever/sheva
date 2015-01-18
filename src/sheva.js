@@ -60,26 +60,35 @@ sheva.prototype.And = function () {
 sheva.prototype.Until = function () {
   var parser = arguments[0];
   var EndContidtionParser = arguments[1];
+
   return function (value, type) {
-		var val = "", offset = 0, children = [];
+		var val = "", offset = 0, children = [], res = {status:false};
     
     if (value.length === 0) return {status:false};
 
-		for (var i = 0; i < parsers.length; i++) {
-			var parser = parsers[i];
+    var tail = EndConditionParer(value.slice(offset), type)
+
+    while (!tail.status) {
+      if (value.length === 0) return {status:false};
+
 			var ok = parser(value.slice(offset), type);
 
 			if (ok.status != true) return {status:false};
-
-			if (ok.offset != 0 && !(type in self.tokens)) children.push(ok);
-
-			val += ok.value;
+			
+      if (ok.offset != 0 && !(type in self.tokens)) children.push(ok);
+			
+      val += ok.value;
 			offset += ok.offset;
-		}
+      
+      tail = EndConditionParer(value.slice(offset), type)
+    }
 
-		var res = {status:true, type:type, value:val, offset:offset};
+		if (offset != 0) {
+      offset += tail.offset;
+      res = {status:true, type:type, value:val, offset:offset};
 
-		if (!(type in self.tokens)) res.children = children;
+	  	if (!(type in self.tokens)) res.children = children;
+    }
 
 		return res;
   }
