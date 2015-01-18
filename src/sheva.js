@@ -58,15 +58,16 @@ sheva.prototype.And = function () {
 }
 //Until(Parser, EndConditionParser) - repeat the Parser until the EndConditionParser matched.
 sheva.prototype.Until = function () {
+  var self  = this;
   var parser = arguments[0];
-  var EndContidtionParser = arguments[1];
+  var EndConditionParser = arguments[1];
 
   return function (value, type) {
 		var val = "", offset = 0, children = [], res = {status:false};
     
     if (value.length === 0) return {status:false};
 
-    var tail = EndConditionParer(value.slice(offset), type)
+    var tail = EndConditionParser(value.slice(offset), type)
 
     while (!tail.status) {
       if (value.length === 0) return {status:false};
@@ -80,11 +81,14 @@ sheva.prototype.Until = function () {
       val += ok.value;
 			offset += ok.offset;
       
-      tail = EndConditionParer(value.slice(offset), type)
+      tail = EndConditionParser(value.slice(offset), type)
     }
 
 		if (offset != 0) {
       offset += tail.offset;
+      val += tail.value;
+      children.push(tail);
+
       res = {status:true, type:type, value:val, offset:offset};
 
 	  	if (!(type in self.tokens)) res.children = children;
